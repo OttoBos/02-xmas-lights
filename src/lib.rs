@@ -14,7 +14,7 @@ fn process_line(grid: &mut Vec<bool>, instruction: &str) {
     change_state_of_range(grid, &cmd, x1, y1, x2, y2)
 }
 
-fn compile_instruction(instruction: &str) -> (char, u8, u8, u8, u8) {
+fn compile_instruction(instruction: &str) -> (char, u16, u16, u16, u16) {
     const CMD_ON: &str = "turn on";
     const CMD_OFF: &str = "turn off";
     const CMD_TOGGLE: &str = "toggle";
@@ -27,14 +27,14 @@ fn compile_instruction(instruction: &str) -> (char, u8, u8, u8, u8) {
     let components: Vec<&str> = compact_instruction.split(',').collect();
     (
         components[0].chars().nth(0).unwrap(),
-        components[1].parse::<u8>().unwrap(),
-        components[2].parse::<u8>().unwrap(),
-        components[3].parse::<u8>().unwrap(),
-        components[4].parse::<u8>().unwrap(),
+        components[1].parse::<u16>().unwrap(),
+        components[2].parse::<u16>().unwrap(),
+        components[3].parse::<u16>().unwrap(),
+        components[4].parse::<u16>().unwrap(),
     )
 }
 
-fn change_state_of_range(grid: &mut Vec<bool>, cmd: &char, x1: u8, y1: u8, x2: u8, y2: u8) {
+fn change_state_of_range(grid: &mut Vec<bool>, cmd: &char, x1: u16, y1: u16, x2: u16, y2: u16) {
     for x in x1..x2 + 1 {
         for y in y1..y2 + 1 {
             if cmd == &'+' {
@@ -53,11 +53,11 @@ fn count_lights(grid: &Vec<bool>) -> usize {
     grid.iter().filter(|v| **v).count()
 }
 
-fn set_value(grid: &mut Vec<bool>, x: u8, y: u8, value: bool) {
+fn set_value(grid: &mut Vec<bool>, x: u16, y: u16, value: bool) {
     grid[usize::from(y) * GRID_SIZE + usize::from(x)] = value
 }
 
-fn get_value(grid: &mut Vec<bool>, x: u8, y: u8) -> bool {
+fn get_value(grid: &mut Vec<bool>, x: u16, y: u16) -> bool {
     grid[usize::from(y) * GRID_SIZE + usize::from(x)]
 }
 
@@ -66,8 +66,39 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn set_10x10_on_works() {
         let instructions = "turn on 0,0 through 9,9".to_string();
         assert_eq!(process_lights(instructions), 100);
+    }
+
+    #[test]
+    fn donut_4x4_works() {
+        let instructions = "turn on 0,0 through 3,3
+        turn off 1,1 through 2,2"
+            .to_string();
+        assert_eq!(process_lights(instructions), 12);
+    }
+
+    #[test]
+    fn donut_4x4_toggle_works() {
+        let instructions = "turn on 0,0 through 3,3
+        toggle 1,1 through 2,2"
+            .to_string();
+        assert_eq!(process_lights(instructions), 12);
+    }
+
+    #[test]
+    fn santas_instructions_work() {
+        let instructions = "turn on 887,9 through 959,629
+                turn on 454,398 through 844,448
+                turn off 539,243 through 559,965
+                turn off 370,819 through 676,868
+                turn off 145,40 through 370,997
+                turn off 301,3 through 808,453
+                turn on 351,678 through 951,908
+                toggle 720,196 through 897,994
+                toggle 831,394 through 904,860"
+            .to_string();
+        assert_eq!(process_lights(instructions), 230022);
     }
 }
