@@ -1,15 +1,15 @@
 // size of square grid. A grid of size 2 has 4 lights (0,0 - 1,1)
 const GRID_SIZE: usize = 1000;
 
-pub fn process_lights(instructions: String) -> usize {
-    let mut grid: Vec<bool> = vec![false; GRID_SIZE * GRID_SIZE];
+pub fn process_lights(instructions: String) -> u32 {
+    let mut grid: Vec<u32> = vec![0; GRID_SIZE * GRID_SIZE];
     for instruction in instructions.split('\n') {
         process_line(&mut grid, instruction.trim());
     }
     count_lights(&grid)
 }
 
-fn process_line(grid: &mut Vec<bool>, instruction: &str) {
+fn process_line(grid: &mut Vec<u32>, instruction: &str) {
     let (cmd, x1, y1, x2, y2) = compile_instruction(instruction);
     change_state_of_range(grid, &cmd, x1, y1, x2, y2)
 }
@@ -34,30 +34,30 @@ fn compile_instruction(instruction: &str) -> (char, u16, u16, u16, u16) {
     )
 }
 
-fn change_state_of_range(grid: &mut Vec<bool>, cmd: &char, x1: u16, y1: u16, x2: u16, y2: u16) {
+fn change_state_of_range(grid: &mut Vec<u32>, cmd: &char, x1: u16, y1: u16, x2: u16, y2: u16) {
     for x in x1..x2 + 1 {
         for y in y1..y2 + 1 {
+            let old_value = get_value(grid, x, y);
             if cmd == &'+' {
-                set_value(grid, x, y, true)
+                set_value(grid, x, y, old_value + 1)
             } else if cmd == &'-' {
-                set_value(grid, x, y, false)
+                set_value(grid, x, y, if old_value == 0 { 0 } else { old_value - 1 })
             } else if cmd == &'x' {
-                let old_value = get_value(grid, x, y);
-                set_value(grid, x, y, !old_value)
+                set_value(grid, x, y, old_value + 2)
             }
         }
     }
 }
 
-fn count_lights(grid: &Vec<bool>) -> usize {
-    grid.iter().filter(|v| **v).count()
+fn count_lights(grid: &Vec<u32>) -> u32 {
+    grid.iter().sum()
 }
 
-fn set_value(grid: &mut Vec<bool>, x: u16, y: u16, value: bool) {
+fn set_value(grid: &mut Vec<u32>, x: u16, y: u16, value: u32) {
     grid[usize::from(y) * GRID_SIZE + usize::from(x)] = value
 }
 
-fn get_value(grid: &mut Vec<bool>, x: u16, y: u16) -> bool {
+fn get_value(grid: &mut Vec<u32>, x: u16, y: u16) -> u32 {
     grid[usize::from(y) * GRID_SIZE + usize::from(x)]
 }
 
@@ -84,7 +84,7 @@ mod tests {
         let instructions = "turn on 0,0 through 3,3
         toggle 1,1 through 2,2"
             .to_string();
-        assert_eq!(process_lights(instructions), 12);
+        assert_eq!(process_lights(instructions), 24);
     }
 
     #[test]
@@ -99,6 +99,6 @@ mod tests {
                 toggle 720,196 through 897,994
                 toggle 831,394 through 904,860"
             .to_string();
-        assert_eq!(process_lights(instructions), 230022);
+        assert_eq!(process_lights(instructions), 539560);
     }
 }
